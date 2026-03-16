@@ -1,6 +1,5 @@
 # Korean Traditional Board Game: Yut Nori (윷놀이)
 
-**Sunghun Kim** | Calvin University
 
 ![Yut Nori Board](Board%20picture)
 
