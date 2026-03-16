@@ -1,80 +1,69 @@
 # Korean Traditional Board Game: Yut Nori (윷놀이)
 
+**Sunghun Kim** | Calvin University | April 2025
 
 ![Yut Nori Board](Board%20picture)
 
 ---
 
-## Overview
+## Novelty
 
-This project implements the Korean traditional board game **Yut Nori** as a digital game using Python's `guizero` library. It makes the game accessible to people who do not have physical game components (board, pieces and sticks).
+This project implements the Korean traditional board game Yut Nori as a digital game using Python's guizero library. It makes the game accessible to people who do not have physical game components (board, pieces and sticks). I have incorporated special logic of the game such as taking shortcut paths, rolling yut and movement function of the pieces.
 
-The GUI visualizes the same framework used in Korea: a visual board with numbered positions, roll results, player moves, piece locations and player status updates. This is an entertaining game designed to offer an engaging way for any users to learn about Korean culture through interactive gameplay.
-
----
-
-## How to Play
-
-Yut Nori is a two-player board game where each player has **3 game pieces (말)**. Players take turns rolling 4 sticks and moving their pieces around the board. The first player to get all 3 pieces to the goal (Position 1) wins.
-
-### Roll Results
-
-| Roll | Korean | Value |
-|------|:---:|:---:|
-| Do | 도 | 1 step |
-| Gae | 개 | 2 steps |
-| Gul | 걸 | 3 steps |
-| Yut | 윷 | 4 steps |
-| Mo | 모 | 5 steps |
-
-### Game Controls
-
-1. **Roll Yut Sticks** — Roll to get your movement value
-2. **Start a New Piece** — Place a new piece on the board using the roll value
-3. **Click a piece** on the board to select it (highlighted in yellow)
-4. **Move Selected Piece** — Move the selected piece by the rolled value
+The Graphical User Interface visualizes the same framework used in Korea: a visual board with numbered positions pieces can move to, roll results, player moves, piece locations and player status updates. This is an entertaining game designed to offer an engaging way for any users to learn about Korean culture through interactive gameplay. Through providing clear instructions in the game interface, it introduces the game's rules and logic to those who may be unfamiliar.
 
 ---
 
-## Features
+## Goals
 
-- **Visual Board** with 20 outer positions, 8 shortcut positions, and a center point
-- **Shortcut Paths** — Pieces landing on corner positions (6, 11) can take diagonal shortcuts through the center
-- **Piece Selection** — Click detection with radius-based matching and yellow highlight for selected pieces
-- **Turn-based Gameplay** — Automatic turn switching between Player 1 (Blue) and Player 2 (Red)
-- **Win Detection** — Game ends when a player gets all 3 pieces to the goal
+The goal of this project is to create a digital board game of Yut Nori that functions the traditional logic while leveraging the digital advantage. The objectives are:
+
+1. Implement the game logic and rules including moving pieces, taking shortcuts and win conditions (all pieces reaching the goal position).
+2. Create user friendly GUI to visualize the board, pieces, and control elements.
+3. Provide interface to users with comprehensive but easy game instructions for those who are new to this game.
+4. Implement rolling Yut sticks method with appropriate probabilities and outcomes of the roll (Do, Gae, Geol, Yut, Mo).
+5. Create visual highlights for the selected pieces for a better gameplay experience.
+6. Update on the interface that displays player's status (rolled result, remaining pieces, current turn).
+7. Create interactive control buttons to move selected pieces, start pieces and roll Yut sticks.
+
+---
+
+## Data and Python Data Types
+
+This game utilizes numerous Python data types to run the game logic and manage game state.
+
+**Dictionaries** — The most important part of the game, used to store the position of locations and pieces. Each position of the board is stored in a dictionary with keys of id, x/y coordinates and type (shortcut, outer). Custom paths for shortcuts are also stored in a dictionary where keys are positions and values are lists of positions the piece has to follow in order. Furthermore, player's pieces, remaining pieces and completed pieces information are stored in dictionaries to change the game's state and data as the game is played.
+
+**Lists** — Many functions use dictionaries and lists together, and lists are often stored in dictionaries. It stores data of rolled four sticks, each position of the board, each player's pieces (active, completed piece) and shortcut list to represent sequence of positions for special paths.
+
+**Integers** — Used to track the game state including remaining pieces, completed pieces, rolled values and current player.
+
+**Strings** — Used for display purposes on the interface such as instructions and game state.
+
+**Tuples** — Used to store the information of the user's selected piece (player1/2, piece id). In functions of drawing the board and pieces, it uses coordinate pairs (x, y) to calculate or check the position. The click detects exact x and y coordinates through tuple's event object to match the click location and piece. During player clicks, the event handler captures coordinate tuples, which the code then compares against piece positions using radius-based calculations to determine which game element was selected.
+
+**Booleans** — Used to return true or false if the player won, and setting None for selected_piece to keep the default setting.
 
 ---
 
 ## Algorithm Design
 
+The main challenge was connecting visualization and game logic functions working correctly together. This section introduces several core algorithms of the game.
+
 ### Board Drawing
-Each position stores a unique ID, x/y coordinates, and type (outer, center, shortcut). This core data drives piece drawing, movement, selection, and shortcut definitions.
+When drawing the board and positions at the start, the algorithm stores each position's unique id, coordinates and type. This is one of the main core data that the algorithm uses to draw pieces, move pieces, select pieces, define shortcuts, etc.
 
 ### Piece Movement
-For normal paths (positions 2–20), the algorithm adds the roll value to the current position. For shortcuts, it follows predefined paths stored in a `custom_paths` dictionary. Positions 6 and 11 trigger shortcut entries, and position 21 (center) has branching logic depending on whether the piece's turn ends there.
+The piece movement algorithm calculates each piece's movement based on the current position, start position (starting new piece) and roll value. For normal paths without taking shortcuts, it simply adds the position number along with the rolled value (positions 2 to 20). For shortcuts, it follows the paths defined in the `custom_paths` dictionary that stores starting positions to sequences of subsequent positions. When a piece's turn ends at a specific position (starting with 6 and 11), the movement follows the predefined paths. Every time movements are made, the board is cleared and pieces are redrawn on a new position. Each player's pieces are drawn in different colors to represent the player's pieces. When a player has made a move, it switches turn to the other player.
 
 ### Piece Selection
-The `board_click` function uses guizero's `when_clicked` event to detect clicks within a 15-pixel radius of each position. When matched to a player's piece, it highlights the selection with a larger yellow circle.
+The piece selection algorithm at `board_click` function detects if the user's click is within the radius of the current position of a game piece. Location of current position is defined through using coordinates data stored in `self.positions`. When a piece is selected, it draws a bigger yellow circle behind the piece to visually highlight it, in order to apply movement to the correct piece. This imports the guizero events `when_clicked` to detect the click.
 
 ### Yut Stick Rolling
-The `roll` function uses `random.randint(0, 1)` four times to simulate flipping 4 sticks. The sum determines the roll result (0 = Mo, 1 = Do, 2 = Gae, 3 = Gul, 4 = Yut).
+The Yut sticks rolling algorithm at `roll` function imports random to generate random probability of rolling sticks. It is simulated to produce a random number between 0 and 1 four times (which indicates four sticks rolled), and sum those values for the calculated rolled result. The result represents the number of movements players can take (Do, Gae, Gul, Yut, Mo).
 
 ### Win Condition
-Every time a piece reaches position 1 (goal), the completed pieces counter increments. When a player reaches 3 completed pieces, the game ends.
-
----
-
-## Data Types Used
-
-| Type | Usage |
-|------|-------|
-| **Dictionaries** | Board positions (id, x/y, type), custom shortcut paths, player pieces, game state tracking |
-| **Lists** | Rolled stick values, position sequences, player piece collections |
-| **Integers** | Remaining pieces, completed pieces, roll values, current player |
-| **Strings** | UI display text (instructions, status updates) |
-| **Tuples** | Selected piece info (player, piece_id), coordinate pairs for click detection |
-| **Booleans** | Win condition checks, center position tracking |
+The win condition algorithm constantly checks each player's completed pieces. Every time a piece has reached the final goal (position 1), dictionaries of remaining pieces and completed pieces are updated. When a player's completed pieces becomes 3, the player's win conditions are met and the game ends.
 
 ---
 
@@ -86,22 +75,16 @@ Every time a piece reaches position 1 (goal), the completed pieces counter incre
 | `draw_yut_board()` | None | Visualize board and store position data |
 | `add_shortcuts()` | None | Add shortcut positions between corners and center |
 | `roll()` | None | Simulate Yut stick roll and update movement value |
-| `check_win()` | None | Returns `True` if a player has won |
-| `start_new_piece()` | None | Place a new piece on the board |
-| `switch_player()` | None | Switch turn between players |
-| `update_player_info()` | None | Refresh player status display |
-| `board_click(event)` | GuiZero event | Handle piece selection from click |
-| `draw_board_with_pieces()` | None | Redraw board with current piece positions |
+| `check_win()` | None | Returns Boolean — whether a player has won |
+| `start_new_piece()` | None | Place a new piece on the board from rolled value |
+| `switch_player()` | None | Switch player's turn and update display |
+| `update_player_info()` | None | Update player status text on interface |
+| `board_click(event)` | GuiZero event | Handle piece selection from user click |
+| `draw_board_with_pieces()` | None | Redraw board with player's piece positions |
 | `get_next_position(pos, steps)` | int, int | Returns new position after movement |
 | `move_selected_piece()` | None | Move selected piece and update game state |
 
 ---
-
-## Tech Stack
-
-- Python 3
-- guizero (GUI framework)
-- random (standard library)
 
 ## How to Run
 
@@ -109,3 +92,9 @@ Every time a piece reaches position 1 (goal), the completed pieces counter incre
 pip install guizero
 python Kim_Sunghun_FinalProject.py
 ```
+
+---
+
+## Tech Stack
+
+Python 3, guizero, random (standard library)
